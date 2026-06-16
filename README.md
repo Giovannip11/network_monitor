@@ -67,7 +67,7 @@ pip install -r requirements.txt
 ```text
 NETWORK= xxx.xxx.x.x/xx
 ```
-## Excutar basta executar a main.py dentro do app do projeto
+## Executar a main.py dentro do app do projeto
 ```text
 python app/main.py
 ```
