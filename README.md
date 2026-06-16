@@ -41,4 +41,13 @@ network_monitor/
 ## Pré-requisitos
 -  Python 3.10 ou superior
 -  NMAP, o core do scanner depende do binário do NMAP instalado no sistema operacional
-
+## Instalação
+Clone ou mova o projeto para o diretório de sua preferência 
+``` text
+cd C:/projetos/network_monitor
+```
+Crie um ambiente virtual
+``` text
+py -m venv .venv
+```
+Ative o ambiente virtual
