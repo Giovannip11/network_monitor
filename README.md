@@ -1,4 +1,4 @@
-# Network Monitor 🔍🌐
+# Network Monitor 
 
 Um monitor de rede automatizado desenvolvido em Python para ambientes locais. O sistema realiza varreduras periódicas em uma sub-rede configurada, detecta dispositivos conectados, identifica seus respectivos Sistemas Operacionais, fabricantes (através do endereço MAC) e portas ativas. 
 
