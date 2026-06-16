@@ -1,5 +1,5 @@
 from scanner import scan_network
-from storage import save_devices, load_services
+from storage import save_devices, load_devices_from_last_scan, init_db
 from monitor import compare_devices
 
 from dotenv import load_dotenv
@@ -21,12 +21,13 @@ def clear():
 def main():
 
     print("Monitor de rede iniciando...")
+    init_db()
 
     while True:
 
         
 
-        antigos = load_services()
+        antigos = load_devices_from_last_scan()
 
         inicio = time.time()
 
@@ -50,35 +51,19 @@ def main():
         print("=" * 60)
 
         for d in dispositivos:
-
-            ip = d.get("ip", "N/A")
-            hostname = d.get("hostname", "Desconhecido")
-            mac = d.get("mac", "N/A")
-            vendor = d.get("vendor", "Desconhecido")
-            os_name = d.get("os", "Desconhecido")
-
-            print(
-                f"""
-IP: {ip}
-HOST: {hostname}
-MAC: {mac}
-FABRICANTE: {vendor}
-SO: {os_name}
-{"-" * 60}
-                """
-            )
+            print(f"""IP: {d.get('ip', 'N/A')}
+HOST: {d.get('hostname', 'Desconhecido')}
+MAC: {d.get('mac', 'N/A')}
+FABRICANTE: {d.get('vendor', 'Desconhecido')}
+SO: {d.get('os', 'Desconhecido')}
+{"-" * 60}""")
 
         print("\nEVENTOS")
         print("=" * 60)
-
         if novos:
-            for ip in novos:
-                print(f"[NOVO DISPOSITIVO] {ip}")
-
+            for ip in novos: print(f"[NOVO DISPOSITIVO] {ip}")
         if removidos:
-            for ip in removidos:
-                print(f"[DISPOSITIVO OFFLINE] {ip}")
-
+            for ip in removidos: print(f"[DISPOSITIVO OFFLINE] {ip}")
         if not novos and not removidos:
             print("Nenhuma mudança.")
 
@@ -91,9 +76,6 @@ SO: {os_name}
         generate_pdf()
         
         time.sleep(SCAN_INTERVAL)
-        
-        
-
 
 if __name__ == "__main__":
     main()

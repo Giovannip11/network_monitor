@@ -1,52 +1,26 @@
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer
-)
-
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus.tables import Table
-from reportlab.platypus.tables import TableStyle
-
+from reportlab.platypus.tables import Table, TableStyle
 from reportlab.lib import colors
-
-import json
 import os
-
 from datetime import datetime
-HISTORY_DIR = r"C:/projetos/network_monitor/history"
 
-def generate_pdf(json_file= r"C:\projetos/network_monitor/data/devices.json"):
+from config import HISTORY_DIR
+from storage import load_devices_from_last_scan # Puxando do SQLite
 
-    with open(json_file, "r") as f:
-        devices = json.load(f)
-
+def generate_pdf():
     
-    
+    devices = load_devices_from_last_scan()
 
-  
-    timestamp = datetime.now().strftime(
-        "%Y-%m-%d_%H-%M-%S"
-    )
-
-    
-    pdf_path = f"C:/projetos/network_monitor/history/relatorio_{timestamp}.pdf"
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    pdf_path = os.path.join(HISTORY_DIR, f"relatorio_{timestamp}.pdf")
 
     pdf = SimpleDocTemplate(pdf_path)
-
     styles = getSampleStyleSheet()
-
     elements = []
 
-    titulo = Paragraph(
-        "Relatorio de Monitoramento de Rede",
-        styles['Title']
-    )
-
-    data = Paragraph(
-        f"Gerado em {datetime.now()}",
-        styles['Normal']
-    )
+    titulo = Paragraph("Relatorio de Monitoramento de Rede", styles['Title'])
+    data = Paragraph(f"Gerado em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal'])
 
     elements.append(titulo)
     elements.append(Spacer(1, 20))
@@ -63,11 +37,7 @@ def generate_pdf(json_file= r"C:\projetos/network_monitor/data/devices.json"):
             d.get("os", "")
         ])
 
-    table = Table(
-        tabela,
-        colWidths=[90, 120, 140, 140]
-    )
-
+    table = Table(tabela, colWidths=[90, 120, 140, 140])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.gray),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -77,7 +47,5 @@ def generate_pdf(json_file= r"C:\projetos/network_monitor/data/devices.json"):
     ]))
 
     elements.append(table)
-
     pdf.build(elements)
-
     print(f"PDF gerado: {pdf_path}")
