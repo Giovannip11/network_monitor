@@ -46,8 +46,28 @@ Clone ou mova o projeto para o diretório de sua preferência
 ``` text
 cd C:/projetos/network_monitor
 ```
-Crie um ambiente virtual
+##Crie um ambiente virtual
 ``` text
 py -m venv .venv
 ```
-Ative o ambiente virtual
+##Ative o ambiente virtual
+-Windows
+```text
+.venv/Scripts/activate
+```
+-Linux/MacOS 
+```text
+source .venv/bin/activate
+```
+##Instale as dependências do projeto
+```text
+pip install -r requirements.txt
+```
+##Crie um .env na raiz do projeto e configure sub-rede que o sistema deve monitorar
+```text
+NETWORK= xxx.xxx.x.x/xx
+```
+## Excutar basta executar a main.py dentro do app do projeto
+```text
+python app/main.py
+```
