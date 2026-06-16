@@ -6,18 +6,17 @@ Os dados coletados são estruturados de forma relacional e armazenados localment
 
 ---
 
-## 🚀 Funcionalidades
+##  Funcionalidades
 
 - **Varredura Paralelizada:** Utiliza `ThreadPoolExecutor` para acelerar o escaneamento de múltiplos hosts simultaneamente através do Nmap.
 - **Identificação de Ativos:** Detecta IP, MAC Address, Fabricante (Vendor) e Sistema Operacional (OS).
-- **Mapeamento de Portas:** Verifica o estado das principais portas de serviços de rede (SSH, HTTP, HTTPS, RDP, SMB, etc.).
 - **Persistência em SQLite:** Armazenamento relacional e histórico completo de varreduras para auditoria de segurança ou inventário de TI.
 - **Detecção de Mudanças em Tempo Real:** Identifica e loga novos dispositivos que entraram na rede ou dispositivos que ficaram offline.
 - **Relatórios Automatizados:** Geração contínua de relatórios em PDF detalhados com os dados coletados na última varredura.
 
 ---
 
-## 📁 Estrutura do Projeto
+##  Estrutura do Projeto
 
 ```text
 network_monitor/
@@ -38,3 +37,8 @@ network_monitor/
 │   └── monitor.log        # Registro de eventos textuais (Gerado automaticamente)
 ├── .env                   # Variáveis de ambiente (Configuração da rede)
 └── requirements.txt       # Dependências do projeto
+```
+## Pré-requisitos
+- ** Python 3.10 ou superior
+- ** NMAP, o core do scanner depende do binário do NMAP instalado no sistema operacional
+
