@@ -1,11 +1,11 @@
 import os
 import sqlite3
-
+from datetime import datetime,timezone,timedelta
 DATA_DIR = r"C:/projetos/network_monitor/data"
 DB_PATH = os.path.join(DATA_DIR, "network_monitor.db")
 
 os.makedirs(DATA_DIR, exist_ok=True)
-
+FUSO_LOCAL = timezone(timedelta(hours=-3))
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.execute("PRAGMA foreign_keys=ON;")
@@ -34,7 +34,7 @@ def init_db():
             """
            CREATE TABLE IF NOT EXISTS historico_varreduras (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                data_hora DATETIME DEFAULT CURRENT_TIMESTAMP
+                data_hora TEXT NOT NULL
             )
             """
         )
@@ -56,7 +56,9 @@ def save_devices(devices_list):
     with get_connection() as conn:
         cursor = conn.cursor()
         
-        cursor.execute("INSERT INTO historico_varreduras DEFAULT VALUES ")
+        agora_local = datetime.now(FUSO_LOCAL).strftime("%Y-%m-%d %H:%M:%S")
+        
+        cursor.execute("INSERT INTO historico_varreduras (data_hora) VALUES (?)", (agora_local,))
         id_varredura = cursor.lastrowid
         
         for dev in devices_list:
@@ -103,9 +105,16 @@ def save_devices(devices_list):
 def load_devices_from_last_scan():
     with get_connection() as conn:
         cursor = conn.cursor()
+    
         
         query = """
-            SELECT d.ip, d.nome as hostname, d.fabricante as vendor, d.so as os, h.data_hora, l.status
+            SELECT 
+                d.ip, 
+                d.nome as hostname, 
+                d.fabricante as vendor, 
+                d.so as os, 
+                datetime(h.data_hora, 'localtime') as data_hora, 
+                l.status
             FROM logs_dispositivos l
             JOIN dispositivos d ON l.id_dispositivo = d.id
             JOIN historico_varreduras h ON l.id_varredura = h.id
