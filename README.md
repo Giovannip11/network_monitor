@@ -39,6 +39,6 @@ network_monitor/
 └── requirements.txt       # Dependências do projeto
 ```
 ## Pré-requisitos
-- ** Python 3.10 ou superior
-- ** NMAP, o core do scanner depende do binário do NMAP instalado no sistema operacional
+-  Python 3.10 ou superior
+-  NMAP, o core do scanner depende do binário do NMAP instalado no sistema operacional
 
