@@ -1,16 +1,14 @@
 from scanner import scan_network
 from storage import save_devices, load_devices_from_last_scan, init_db
 from monitor import compare_devices
+from config import get_network
 
-from dotenv import load_dotenv
 from pdf_report import generate_pdf
 
 import os
 import time
 
-load_dotenv()
-
-NET = os.getenv("NETWORK")
+NET = get_network()
 SCAN_INTERVAL = 30
 
 
@@ -19,8 +17,11 @@ def clear():
 
 
 def main():
-
-    print("Monitor de rede iniciando...")
+    if NET is None:
+        print("Não foi possível detectar a rede")
+        return
+    
+    print(f"Monitor de rede iniciando {NET}")
     init_db()
 
     while True:
@@ -47,7 +48,7 @@ def main():
         )
 
         print("=" * 60)
-        print("DISPOSITIVOS ONLINE")
+        print(f"DISPOSITIVOS ONLINE({NET})")
         print("=" * 60)
 
         for d in dispositivos:
@@ -69,6 +70,7 @@ SO: {d.get('os', 'Desconhecido')}
 
         print("\nINFO")
         print("=" * 60)
+        print(f"Rede monitorara ({NET})")
         print(f"Dispositivos encontrados: {len(dispositivos)}")
         print(f"Tempo do scan: {fim - inicio:.2f}s")
         print(f"Próximo scan em {SCAN_INTERVAL}s")
