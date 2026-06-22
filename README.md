@@ -63,10 +63,6 @@ source .venv/bin/activate
 ```text
 pip install -r requirements.txt
 ```
-##Crie um .env na raiz do projeto e configure sub-rede que o sistema deve monitorar
-```text
-NETWORK= xxx.xxx.x.x/xx
-```
 ## Executar a main.py dentro do app do projeto
 ```text
 python app/main.py
