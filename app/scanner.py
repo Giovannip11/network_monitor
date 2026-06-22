@@ -1,73 +1,55 @@
-import nmap
 import socket
-
 from concurrent.futures import ThreadPoolExecutor
 
+import nmap3
 
 PORTAS_IMPORTANTES = "22,53,80,135,139,443,445,3389,9100"
 
 
 def scan_host(host):
 
-    scanner = nmap.PortScanner()
+    nmap = nmap3.Nmap()
 
     try:
-        
-        scanner.scan(
-            host,
-            arguments=f'-O -sS -Pn -p {PORTAS_IMPORTANTES}'
+        resultado_scan = nmap.scan_top_ports(
+            host, args=f"-O -sS -Pn -p {PORTAS_IMPORTANTES}"
         )
 
-        if host not in scanner.all_hosts():
+        if host not in resultado_scan:
             return None
-
-        
+        dados_host = resultado_scan[host]
         try:
             hostname = socket.gethostbyaddr(host)[0]
         except:
             hostname = "Desconhecido"
 
-       
         mac = "N/A"
         vendor = "Desconhecido"
+        addresses = dados_host.get("addresses", [])
 
-        if "addresses" in scanner[host]:
+        for addr in addresses:
+            if addr.get("addrtype") == "mac":
+                mac = addr.get("addr", "N/A")
+                vendor = addr.get("vendor", "Desconhecido")
+                break
 
-            mac = scanner[host]["addresses"].get("mac", "N/A")
-
-            if (
-                "vendor" in scanner[host]
-                and mac in scanner[host]["vendor"]
-            ):
-                vendor = scanner[host]["vendor"][mac]
-
-        
         os_name = "Desconhecido"
 
-        if (
-            "osmatch" in scanner[host]
-            and len(scanner[host]["osmatch"]) > 0
-        ):
-            os_name = scanner[host]["osmatch"][0]["name"]
+        osmatches = dados_host.get("osmatch", [])
+        if osmatches:
+            os_name = osmatches[0].get("name", "Desconhecido")
 
-        
         open_ports = []
 
-        if "tcp" in scanner[host]:
+        ports = dados_host.get("ports", [])
+        for p in ports:
+            if p.get("state") == "open":
+                open_ports.append(int(p.get("portid")))
 
-            for port in scanner[host]["tcp"]:
+        state_info = dados_host.get("state", {})
+        status = state_info.get("state", "unknown")
 
-                if scanner[host]["tcp"][port]["state"] == "open":
-                    open_ports.append(port)
-
-        
-        latency = scanner[host].get(
-            "times",
-            {}
-        ).get(
-            "srtt",
-            "N/A"
-        )
+        latency = dados_host.get("runtime", {}).get("elapsed", "N/A")
 
         return {
             "ip": host,
@@ -76,8 +58,8 @@ def scan_host(host):
             "vendor": vendor,
             "os": os_name,
             "open_ports": open_ports,
-            "status": scanner[host].state(),
-            "latency": latency
+            "status": status,
+            "latency": latency,
         }
 
     except Exception as e:
@@ -87,14 +69,23 @@ def scan_host(host):
 
 def discover_hosts(network):
 
-    scanner = nmap.PortScanner()
+    nmap_discover = nmap3.NmapHostDiscovery()
 
-    scanner.scan(
-        hosts=network,
-        arguments='-sn'
-    )
+    resultado = nmap_discover.nmap_no_portscan(network, args="-sn -PR")
 
-    return scanner.all_hosts()
+    hosts_ativos = []
+
+    for ip, info in resultado.items():
+        if ip in ["stats", "runtime", "nmaprun"]:
+            continue
+
+        # No nmap3, o status fica dentro de um dicionário na chave 'state'
+        if isinstance(info, dict):
+            state_info = info.get("state", {})
+            if state_info.get("state") == "up":
+                hosts_ativos.append(ip)
+
+    return hosts_ativos
 
 
 def scan_network(network):
@@ -108,20 +99,12 @@ def scan_network(network):
     devices = []
 
     with ThreadPoolExecutor(max_workers=20) as executor:
-
         results = executor.map(scan_host, hosts)
 
         for result in results:
-
             if result:
-
                 devices.append(result)
 
-                print(
-                    f"[OK] "
-                    f"{result['ip']} | "
-                    f"{result['vendor']} | "
-                    f"{result['os']}"
-                )
+                print(f"[OK] {result['ip']} | {result['vendor']} | {result['os']}")
 
     return devices

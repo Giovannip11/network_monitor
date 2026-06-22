@@ -10,8 +10,9 @@ pycparser==3.0
 pydyf==0.12.1
 pyphen==0.17.2
 python-dotenv==1.2.2
-python-nmap==0.7.1
+python3-nmap==1.9.1
 reportlab==4.5.1
+simplejson==4.1.1
 tinycss2==1.5.1
 tinyhtml5==2.1.0
 weasyprint==68.1
