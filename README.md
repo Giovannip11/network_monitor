@@ -46,11 +46,11 @@ Clone ou mova o projeto para o diretório de sua preferência
 ``` text
 cd C:/projetos/network_monitor
 ```
-##Crie um ambiente virtual
+Crie um ambiente virtual
 ``` text
 py -m venv .venv
 ```
-##Ative o ambiente virtual
+Ative o ambiente virtual
 -Windows
 ```text
 .venv/Scripts/activate
@@ -59,11 +59,11 @@ py -m venv .venv
 ```text
 source .venv/bin/activate
 ```
-##Instale as dependências do projeto
+Instale as dependências do projeto
 ```text
 pip install -r requirements.txt
 ```
-## Executar a main.py dentro do app do projeto
+ Executar a main.py dentro do app do projeto
 ```text
 python app/main.py
 ```
