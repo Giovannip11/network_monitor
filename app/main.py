@@ -66,16 +66,19 @@ SO: {d.get('os', 'Desconhecido')}
         if removidos:
             for ip in removidos: print(f"[DISPOSITIVO OFFLINE] {ip}")
         if not novos and not removidos:
-            print("Nenhuma mudança.")
+            print("Nenhuma mudança.")   
 
         print("\nINFO")
         print("=" * 60)
-        print(f"Rede monitorara ({NET})")
+        print(f"Rede monitorada ({NET})")
         print(f"Dispositivos encontrados: {len(dispositivos)}")
         print(f"Tempo do scan: {fim - inicio:.2f}s")
         print(f"Próximo scan em {SCAN_INTERVAL}s")
 
-        generate_pdf()
+        try:
+            generate_pdf()
+        except Exception as e:
+            print(f"Erro ao gerar o pdf:{e}")
         
         time.sleep(SCAN_INTERVAL)
 
