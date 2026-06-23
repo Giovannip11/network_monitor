@@ -7,7 +7,6 @@ PORTAS_IMPORTANTES = "22,53,80,135,139,443,445,3389,9100"
 
 
 def scan_host(host):
-
     nmap = nmap3.Nmap()
 
     try:
@@ -17,7 +16,13 @@ def scan_host(host):
 
         if host not in resultado_scan:
             return None
+            
         dados_host = resultado_scan[host]
+        
+     
+        if not isinstance(dados_host, dict):
+            return None
+
         try:
             hostname = socket.gethostbyaddr(host)[0]
         except:
@@ -25,31 +30,40 @@ def scan_host(host):
 
         mac = "N/A"
         vendor = "Desconhecido"
+        
+       
         addresses = dados_host.get("addresses", [])
-
-        for addr in addresses:
-            if addr.get("addrtype") == "mac":
-                mac = addr.get("addr", "N/A")
-                vendor = addr.get("vendor", "Desconhecido")
-                break
+        if isinstance(addresses, list): 
+            for addr in addresses:
+                if isinstance(addr, dict) and addr.get("addrtype") == "mac":
+                    mac = addr.get("addr", "N/A")
+                    vendor = addr.get("vendor", "Desconhecido")
+                    break
 
         os_name = "Desconhecido"
-
         osmatches = dados_host.get("osmatch", [])
-        if osmatches:
-            os_name = osmatches[0].get("name", "Desconhecido")
+        if isinstance(osmatches, list) and osmatches:
+            if isinstance(osmatches[0], dict):
+                os_name = osmatches[0].get("name", "Desconhecido")
 
         open_ports = []
-
         ports = dados_host.get("ports", [])
-        for p in ports:
-            if p.get("state") == "open":
-                open_ports.append(int(p.get("portid")))
+        
+      
+        if isinstance(ports, list):
+            for p in ports:
+                if isinstance(p, dict) and p.get("state") == "open":
+                    open_ports.append(int(p.get("portid")))
 
         state_info = dados_host.get("state", {})
-        status = state_info.get("state", "unknown")
+        status = "unknown"
+        if isinstance(state_info, dict):
+            status = state_info.get("state", "unknown")
 
-        latency = dados_host.get("runtime", {}).get("elapsed", "N/A")
+        runtime_info = dados_host.get("runtime", {})
+        latency = "N/A"
+        if isinstance(runtime_info, dict):
+            latency = runtime_info.get("elapsed", "N/A")
 
         return {
             "ip": host,
@@ -70,20 +84,28 @@ def scan_host(host):
 def discover_hosts(network):
 
     nmap_discover = nmap3.NmapHostDiscovery()
-
-    resultado = nmap_discover.nmap_no_portscan(network, args="-sn -PR")
+    try:
+        resultado = nmap_discover.nmap_no_portscan(network, args="-sn")
+    
+    except Exception as e:
+        print(f"ERRO na descoberta{e}")
 
     hosts_ativos = []
+    
+    if not resultado or not isinstance (resultado,dict):
+        return hosts_ativos
 
     for ip, info in resultado.items():
         if ip in ["stats", "runtime", "nmaprun"]:
             continue
 
-        # No nmap3, o status fica dentro de um dicionário na chave 'state'
+       
         if isinstance(info, dict):
             state_info = info.get("state", {})
             if state_info.get("state") == "up":
                 hosts_ativos.append(ip)
+        elif isinstance (info,list) and ip:
+            hosts_ativos.append(ip)
 
     return hosts_ativos
 
