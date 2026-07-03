@@ -152,7 +152,7 @@ class MonitorScreen(ttk.Frame):
         self.status.config(text="Status: Parado")
 
     def voltar(self):
-        from control_panel import Control_panel
+        .from control_panel import Control_panel
 
         self.monitorando = False
         self.destroy()
