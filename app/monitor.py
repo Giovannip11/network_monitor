@@ -1,4 +1,4 @@
-from logger import log_event
+from app.logger import log_event
 def compare_devices(old,new):
     old_ips = {device["ip"] for device in old}
     new_ips = {device["ip"] for device in new}

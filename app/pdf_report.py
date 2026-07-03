@@ -5,8 +5,8 @@ from reportlab.lib import colors
 import os
 from datetime import datetime
 
-from config import HISTORY_DIR
-from storage import load_devices_from_last_scan # Puxando do SQLite
+from app.config import HISTORY_DIR
+from app.storage import load_devices_from_last_scan # Puxando do SQLite
 
 def generate_pdf():
     

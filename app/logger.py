@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from config import LOG_DIR
+from app.config import LOG_DIR
 
 LOG_FILE = os.path.join(LOG_DIR, "monitor.log")
 
