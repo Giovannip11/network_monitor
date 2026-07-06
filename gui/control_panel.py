@@ -1,7 +1,11 @@
 from tkinter import ttk
+from tkinter import *
+import platform
+import os
+import subprocess
+from app.pdf_report import *
 from .monitor_screen import MonitorScreen
-
-
+from .reports import RelatoriosScreen
 class Control_panel(ttk.Frame):
     
     def __init__(self,master):
@@ -18,7 +22,7 @@ class Control_panel(ttk.Frame):
             self,
             text="Monitoramento de dispositivos de rede",
             font=("Arial,12"),
-            ).pack    
+            ).pack()    
         
         ttk.Separator(self).pack(fill="x", padx=50,pady=25)
         
@@ -32,7 +36,8 @@ class Control_panel(ttk.Frame):
         ttk.Button(
             self,
             text = "Historico",
-            width = 35
+            width = 35,
+            command= self.abrir_historico
         ).pack(pady=10)
       
         ttk.Button(
@@ -44,7 +49,8 @@ class Control_panel(ttk.Frame):
         ttk.Button(
             self,
             text = "Sair",
-            width = 35
+            width = 35,
+            command = self.master.destroy
         ).pack(pady=10)
         
     def abrir_monitor(self):
@@ -52,4 +58,15 @@ class Control_panel(ttk.Frame):
         self.destroy()
         
         MonitorScreen(self.master)
+    def abrir_relatorio(self):
+        self.destroy()
+        
+        RelatoriosScreen(self.master)
     
+    def abrir_historico(self):
+        if platform.system() == "Windows":
+            os.startfile(HISTORY_DIR)
+        
+        elif platform.system() == "Linux":
+            subprocess.startfile("xdg-open",HISTORY_DIR)
+        

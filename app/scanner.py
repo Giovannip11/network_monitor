@@ -1,10 +1,12 @@
 import socket
+import threading
 from concurrent.futures import ThreadPoolExecutor
 
 import nmap3
 
 PORTAS_IMPORTANTES = "22,53,80,135,139,443,445,3389,9100"
 
+cancel_event = threading.Event()
 
 def scan_host(host):
     nmap = nmap3.Nmap()
@@ -111,22 +113,32 @@ def discover_hosts(network):
 
 
 def scan_network(network):
-
+    cancel_event.clear()
+    
     print(f"Descobrindo hosts na rede {network}...")
-
     hosts = discover_hosts(network)
+    
+    if cancel_event.is_set():
+        print("Escaneamento cancelado na fase de descoberta")
+        return []
 
     print(f"{len(hosts)} hosts encontrados.\n")
-
     devices = []
 
     with ThreadPoolExecutor(max_workers=20) as executor:
-        results = executor.map(scan_host, hosts)
+        futures = [executor.submit(scan_host, host) for host in hosts]
 
-        for result in results:
-            if result:
-                devices.append(result)
-
-                print(f"[OK] {result['ip']} | {result['vendor']} | {result['os']}")
-
+        for future in futures:
+            if cancel_event.is_set():
+                print("Cancelando tarefas pendentes de ThreadPool")
+                break
+            try:
+                result = future.result()
+                if result:
+                    devices.append(result)
+                    print(f"[OK] {result['ip']} | {result ['vendor']} | {result['os']}")
+            except Exception:
+                pass
+    
     return devices
+

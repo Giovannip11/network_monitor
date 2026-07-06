@@ -2,18 +2,20 @@ import threading
 import time
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 
 from app.config import get_network
 from app.monitor import compare_devices
-from app.scanner import scan_network
+from app.scanner import scan_network , cancel_event
 from app.storage import load_devices_from_last_scan, save_devices
+from app.pdf_report import generate_pdf
 
 
 class MonitorScreen(ttk.Frame):
 
     def __init__(self, master):
         super().__init__(master)
-
+        
         self.master = master
         self.pack(fill="both", expand=True)
 
@@ -21,7 +23,7 @@ class MonitorScreen(ttk.Frame):
         self.network = get_network()
         self.monitorando = False
 
-      
+        
         self.status = ttk.Label(self, text="Status: Parado")
 
         if not self.network:
@@ -39,6 +41,11 @@ class MonitorScreen(ttk.Frame):
 
         
         self.status.pack()
+        
+        self.progress = ttk.Progressbar(
+            self, orient="horizontal", length=300,mode="indeterminate"
+        )
+        self.progress.pack(pady=10)
 
         self.tree = ttk.Treeview(
             self,
@@ -71,6 +78,10 @@ class MonitorScreen(ttk.Frame):
         ttk.Button(botoes, text="Voltar", command=self.voltar).pack(
             side="left", padx=10
         )
+        
+        ttk.Button(botoes,text= "Gerar PDF", command=self.salvar_pdf).pack(
+            side="left",padx=10
+        )
 
         ttk.Label(self, text="Eventos").pack()
 
@@ -89,11 +100,18 @@ class MonitorScreen(ttk.Frame):
 
         while self.monitorando:
             antigos = load_devices_from_last_scan()
+        
+            if not self.monitorando:
+                break
 
             self.master.after(
-                0, lambda: self.status.config(text="Escaneando...")
+                0, lambda: [self.status.config(text="Escaneando..."),
+                self.progress.start(10),],
             )
             dispositivos = scan_network(self.network)
+            
+            if not self.monitorando:
+                break
 
             save_devices(dispositivos)
 
@@ -103,12 +121,16 @@ class MonitorScreen(ttk.Frame):
             if self.monitorando:
                 self.master.after(
                     0,
-                    lambda: self.atualizar_tabela(
-                        dispositivos, novos, removidos
-                    ),
+                    lambda: [
+                        self.progress.stop(),
+                        self.atualizar_tabela(dispositivos,novos,removidos)
+                    ]
                 )
 
-            time.sleep(5)
+            for _ in range(5):
+                if not self.monitorando:
+                    break
+                time.sleep(1)
 
     def atualizar_tabela(self, dispositivos, novos, removidos):
        
@@ -146,14 +168,34 @@ class MonitorScreen(ttk.Frame):
 
         
         self.log.see(END)
+    
+    def salvar_pdf(self,*args):
+        try:
+            generate_pdf()  
+
+            messagebox.showinfo(
+                "Sucesso",
+                "Relatório PDF gerado com sucesso!"
+            )
+        except Exception as e:
+            messagebox.showerror("ERRO",f"Não foi possível salvar em PDF.\n{e}\n")
 
     def parar(self):
         self.monitorando = False
+        cancel_event.set()
+        self.progress.stop()
         self.status.config(text="Status: Parado")
 
     def voltar(self):
-        .from control_panel import Control_panel
+        from .control_panel import Control_panel
 
         self.monitorando = False
+        cancel_event.set()
+        self.progress.stop()
+        self.destroy()
+        Control_panel(self.master)
+    
+    def _finalizar_voltar(self):
+        from .control_panel import Control_panel
         self.destroy()
         Control_panel(self.master)
