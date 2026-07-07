@@ -55,11 +55,11 @@ def main():
             print(f"""IP: {d.get('ip', 'N/A')}
 HOST: {d.get('hostname', 'Unknown')}
 MAC: {d.get('mac', 'N/A')}
-FABRICANTE: {d.get('vendor', 'Unknown')}
-SO: {d.get('os', 'Unknown')}
+VENDOR: {d.get('vendor', 'Unknown')}
+OS: {d.get('os', 'Unknown')}
 {"-" * 60}""")
 
-        print("\nEVENTOS")
+        print("\nEVENTS")
         print("=" * 60)
         if new:
             for ip in new: print(f"[NEW DEVICE] {ip}")
@@ -70,10 +70,10 @@ SO: {d.get('os', 'Unknown')}
 
         print("\nINFO")
         print("=" * 60)
-        print(f"Rede monitorada ({NET})")
-        print(f"Dispositivos encontrados: {len(devices)}")
-        print(f"Tempo do scan: {end - beginning:.2f}s")
-        print(f"Próximo scan em {SCAN_INTERVAL}s")
+        print(f"Monitoring network ({NET})")
+        print(f"Found devices: {len(devices)}")
+        print(f"Scanning time: {end - beginning:.2f}s")
+        print(f"Next scan in {SCAN_INTERVAL}s")
 
         try:
             generate_pdf()

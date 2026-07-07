@@ -13,14 +13,14 @@ def generate_pdf():
     devices = load_devices_from_last_scan()
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    pdf_path = os.path.join(HISTORY_DIR, f"relatorio_{timestamp}.pdf")
+    pdf_path = os.path.join(HISTORY_DIR, f"report_{timestamp}.pdf")
 
     pdf = SimpleDocTemplate(pdf_path)
     styles = getSampleStyleSheet()
     elements = []
 
     titulo = Paragraph("Network Monitoring Report", styles['Title'])
-    data = Paragraph(f"Gerado em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal'])
+    data = Paragraph(f"Generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal'])
 
     elements.append(titulo)
     elements.append(Spacer(1, 20))
@@ -48,4 +48,4 @@ def generate_pdf():
 
     elements.append(table)
     pdf.build(elements)
-    print(f"PDF gerado: {pdf_path}")
+    print(f"PDF generate: {pdf_path}")
