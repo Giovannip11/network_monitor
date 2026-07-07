@@ -43,7 +43,8 @@ class Control_panel(ttk.Frame):
         ttk.Button(
             self,
             text = "Reports",
-            width = 35
+            width = 35,
+            command= self.open_report
         ).pack(pady=10)
         
         ttk.Button(
