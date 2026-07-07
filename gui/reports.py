@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 
-class RelatoriosScreen(ttk.Frame):
+class ReportScreen(ttk.Frame):
     def __init__(self,master):
         
         super().__init__(master)

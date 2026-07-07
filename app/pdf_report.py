@@ -19,7 +19,7 @@ def generate_pdf():
     styles = getSampleStyleSheet()
     elements = []
 
-    titulo = Paragraph("Relatorio de Monitoramento de Rede", styles['Title'])
+    titulo = Paragraph("Network Monitoring Report", styles['Title'])
     data = Paragraph(f"Gerado em {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal'])
 
     elements.append(titulo)
@@ -27,7 +27,7 @@ def generate_pdf():
     elements.append(data)
     elements.append(Spacer(1, 20))
 
-    tabela = [["IP", "Hostname", "Fabricante", "SO"]]
+    tabela = [["IP", "Hostname", "Vendor", "OS"]]
 
     for d in devices:
         tabela.append([

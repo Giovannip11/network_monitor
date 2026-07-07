@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import nmap3
 
-PORTAS_IMPORTANTES = "22,53,80,135,139,443,445,3389,9100"
+NETWORK_PORTS = "22,53,80,135,139,443,445,3389,9100"
 
 cancel_event = threading.Event()
 
@@ -12,44 +12,44 @@ def scan_host(host):
     nmap = nmap3.Nmap()
 
     try:
-        resultado_scan = nmap.scan_top_ports(
-            host, args=f"-O -sS -Pn -p {PORTAS_IMPORTANTES}"
+        scan_result = nmap.scan_top_ports(
+            host, args=f"-O -sS -Pn -p {NETWORK_PORTS}"
         )
 
-        if host not in resultado_scan:
+        if host not in scan_result:
             return None
             
-        dados_host = resultado_scan[host]
+        host_data = scan_result[host]
         
      
-        if not isinstance(dados_host, dict):
+        if not isinstance(host_data, dict):
             return None
 
         try:
             hostname = socket.gethostbyaddr(host)[0]
         except:
-            hostname = "Desconhecido"
+            hostname = "Unknown"
 
         mac = "N/A"
-        vendor = "Desconhecido"
+        vendor = "Unknown"
         
        
-        addresses = dados_host.get("addresses", [])
+        addresses = host_data.get("addresses", [])
         if isinstance(addresses, list): 
             for addr in addresses:
                 if isinstance(addr, dict) and addr.get("addrtype") == "mac":
                     mac = addr.get("addr", "N/A")
-                    vendor = addr.get("vendor", "Desconhecido")
+                    vendor = addr.get("vendor", "Unknown")
                     break
 
-        os_name = "Desconhecido"
-        osmatches = dados_host.get("osmatch", [])
+        os_name = "Unknown"
+        osmatches = host_data.get("osmatch", [])
         if isinstance(osmatches, list) and osmatches:
             if isinstance(osmatches[0], dict):
-                os_name = osmatches[0].get("name", "Desconhecido")
+                os_name = osmatches[0].get("name", "Unknown")
 
         open_ports = []
-        ports = dados_host.get("ports", [])
+        ports = host_data.get("ports", [])
         
       
         if isinstance(ports, list):
@@ -57,12 +57,12 @@ def scan_host(host):
                 if isinstance(p, dict) and p.get("state") == "open":
                     open_ports.append(int(p.get("portid")))
 
-        state_info = dados_host.get("state", {})
+        state_info = host_data.get("state", {})
         status = "unknown"
         if isinstance(state_info, dict):
             status = state_info.get("state", "unknown")
 
-        runtime_info = dados_host.get("runtime", {})
+        runtime_info = host_data.get("runtime", {})
         latency = "N/A"
         if isinstance(runtime_info, dict):
             latency = runtime_info.get("elapsed", "N/A")
@@ -87,17 +87,17 @@ def discover_hosts(network):
 
     nmap_discover = nmap3.NmapHostDiscovery()
     try:
-        resultado = nmap_discover.nmap_no_portscan(network, args="-sn")
+        result = nmap_discover.nmap_no_portscan(network, args="-sn")
     
     except Exception as e:
         print(f"ERRO na descoberta{e}")
 
-    hosts_ativos = []
+    active_hosts = []
     
-    if not resultado or not isinstance (resultado,dict):
-        return hosts_ativos
+    if not result or not isinstance (result,dict):
+        return active_hosts
 
-    for ip, info in resultado.items():
+    for ip, info in result.items():
         if ip in ["stats", "runtime", "nmaprun"]:
             continue
 
@@ -105,24 +105,24 @@ def discover_hosts(network):
         if isinstance(info, dict):
             state_info = info.get("state", {})
             if state_info.get("state") == "up":
-                hosts_ativos.append(ip)
+                active_hosts.append(ip)
         elif isinstance (info,list) and ip:
-            hosts_ativos.append(ip)
+            active_hosts.append(ip)
 
-    return hosts_ativos
+    return active_hosts
 
 
 def scan_network(network):
     cancel_event.clear()
     
-    print(f"Descobrindo hosts na rede {network}...")
+    print(f"Descovering hosts on the network {network}...")
     hosts = discover_hosts(network)
     
     if cancel_event.is_set():
-        print("Escaneamento cancelado na fase de descoberta")
+        print("Scan cancelled during the discovery phase")
         return []
 
-    print(f"{len(hosts)} hosts encontrados.\n")
+    print(f"{len(hosts)} Hosts found.\n")
     devices = []
 
     with ThreadPoolExecutor(max_workers=20) as executor:
@@ -130,7 +130,7 @@ def scan_network(network):
 
         for future in futures:
             if cancel_event.is_set():
-                print("Cancelando tarefas pendentes de ThreadPool")
+                print("Canceling pending ThreadPool tasks")
                 break
             try:
                 result = future.result()

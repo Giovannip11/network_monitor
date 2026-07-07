@@ -5,7 +5,7 @@ import os
 import subprocess
 from app.pdf_report import *
 from .monitor_screen import MonitorScreen
-from .reports import RelatoriosScreen
+from .reports import ReportScreen
 class Control_panel(ttk.Frame):
     
     def __init__(self,master):
@@ -20,7 +20,7 @@ class Control_panel(ttk.Frame):
         
         ttk.Label(
             self,
-            text="Monitoramento de dispositivos de rede",
+            text="Network device monitoring",
             font=("Arial,12"),
             ).pack()    
         
@@ -28,42 +28,42 @@ class Control_panel(ttk.Frame):
         
         ttk.Button(
             self,
-            text="Iniciar monitoramento",
+            text="Start",
             width = 35,
-            command = self.abrir_monitor
+            command = self.open_monitor
         ).pack(pady=10)
         
         ttk.Button(
             self,
-            text = "Historico",
+            text = "History",
             width = 35,
-            command= self.abrir_historico
+            command= self.open_history
         ).pack(pady=10)
       
         ttk.Button(
             self,
-            text = "Relatórios",
+            text = "Reports",
             width = 35
         ).pack(pady=10)
         
         ttk.Button(
             self,
-            text = "Sair",
+            text = "Exit",
             width = 35,
             command = self.master.destroy
         ).pack(pady=10)
         
-    def abrir_monitor(self):
+    def open_monitor(self):
         
         self.destroy()
         
         MonitorScreen(self.master)
-    def abrir_relatorio(self):
+    def open_report(self):
         self.destroy()
         
-        RelatoriosScreen(self.master)
+        ReportScreen(self.master)
     
-    def abrir_historico(self):
+    def open_history(self):
         if platform.system() == "Windows":
             os.startfile(HISTORY_DIR)
         

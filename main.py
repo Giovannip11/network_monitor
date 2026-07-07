@@ -18,67 +18,67 @@ def clear():
 
 def main():
     if NET is None:
-        print("Não foi possível detectar a rede")
+        print("Not possible found network")
         return
     
-    print(f"Monitor de rede iniciando {NET}")
+    print(f"Monitor network starting {NET}")
     init_db()
 
     while True:
 
         
 
-        antigos = load_devices_from_last_scan()
+        olds = load_devices_from_last_scan()
 
-        inicio = time.time()
+        beginning = time.time()
 
-        dispositivos = scan_network(NET)
+        devices = scan_network(NET)
 
-        fim = time.time()
+        end = time.time()
         
-        save_devices(dispositivos)
+        save_devices(devices)
         
         clear()
         
         
 
-        novos, removidos = compare_devices(
-            antigos,
-            dispositivos
+        new, removed = compare_devices(
+            olds,
+            devices
         )
 
         print("=" * 60)
-        print(f"DISPOSITIVOS ONLINE({NET})")
+        print(f"ONLINE DEVICES({NET})")
         print("=" * 60)
 
-        for d in dispositivos:
+        for d in devices:
             print(f"""IP: {d.get('ip', 'N/A')}
-HOST: {d.get('hostname', 'Desconhecido')}
+HOST: {d.get('hostname', 'Unknown')}
 MAC: {d.get('mac', 'N/A')}
-FABRICANTE: {d.get('vendor', 'Desconhecido')}
-SO: {d.get('os', 'Desconhecido')}
+FABRICANTE: {d.get('vendor', 'Unknown')}
+SO: {d.get('os', 'Unknown')}
 {"-" * 60}""")
 
         print("\nEVENTOS")
         print("=" * 60)
-        if novos:
-            for ip in novos: print(f"[NOVO DISPOSITIVO] {ip}")
-        if removidos:
-            for ip in removidos: print(f"[DISPOSITIVO OFFLINE] {ip}")
-        if not novos and not removidos:
-            print("Nenhuma mudança.")   
+        if new:
+            for ip in new: print(f"[NEW DEVICE] {ip}")
+        if removed:
+            for ip in removed: print(f"[DEVICE OFFLINE] {ip}")
+        if not new and not removed:
+            print("Nothing changes.")   
 
         print("\nINFO")
         print("=" * 60)
         print(f"Rede monitorada ({NET})")
-        print(f"Dispositivos encontrados: {len(dispositivos)}")
-        print(f"Tempo do scan: {fim - inicio:.2f}s")
+        print(f"Dispositivos encontrados: {len(devices)}")
+        print(f"Tempo do scan: {end - beginning:.2f}s")
         print(f"Próximo scan em {SCAN_INTERVAL}s")
 
         try:
             generate_pdf()
         except Exception as e:
-            print(f"Erro ao gerar o pdf:{e}")
+            print(f"Error generate pdf:{e}")
         
         time.sleep(SCAN_INTERVAL)
 

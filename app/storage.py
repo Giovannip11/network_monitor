@@ -1,12 +1,11 @@
 import os
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 DATA_DIR = r"C:/projetos/network_monitor/data"
 DB_PATH = os.path.join(DATA_DIR, "network_monitor.db")
 
 os.makedirs(DATA_DIR, exist_ok=True)
-FUSO_LOCAL = timezone(timedelta(hours=-3))
 
 
 def get_connection():
@@ -20,37 +19,41 @@ def init_db():
     with get_connection() as conn:
         cursor = conn.cursor()
 
+        # Table: devices
         cursor.execute(
             """
-            CREATE TABLE IF NOT EXISTS dispositivos
+            CREATE TABLE IF NOT EXISTS devices
             (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 ip TEXT NOT NULL,
-                mac TEXT ,
-                nome TEXT,
-                fabricante TEXT,
-                so TEXT
+                mac TEXT,
+                name TEXT,
+                vendor TEXT,
+                os TEXT
             )
             """
         )
 
+        # Table: scan_history
         cursor.execute(
             """
-           CREATE TABLE IF NOT EXISTS historico_varreduras (
+            CREATE TABLE IF NOT EXISTS scan_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                data_hora TEXT NOT NULL
+                timestamp TEXT NOT NULL
             )
             """
         )
+
+        # Table: device_logs
         cursor.execute(
             """
-            CREATE TABLE IF NOT EXISTS logs_dispositivos (
+            CREATE TABLE IF NOT EXISTS device_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                id_varredura INTEGER NOT NULL,
-                id_dispositivo INTEGER NOT NULL,
+                scan_id INTEGER NOT NULL,
+                device_id INTEGER NOT NULL,
                 status TEXT NOT NULL,
-                FOREIGN KEY (id_varredura) REFERENCES historico_varreduras(id) ON DELETE CASCADE,
-                FOREIGN KEY (id_dispositivo) REFERENCES dispositivos(id)
+                FOREIGN KEY (scan_id) REFERENCES scan_history(id) ON DELETE CASCADE,
+                FOREIGN KEY (device_id) REFERENCES devices(id)
             )
             """
         )
@@ -61,48 +64,49 @@ def save_devices(devices_list):
     with get_connection() as conn:
         cursor = conn.cursor()
 
-        agora_local = datetime.now(FUSO_LOCAL).strftime("%Y-%m-%d %H:%M:%S")
+        # Gets current local user time dynamically
+        local_time = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")
 
         cursor.execute(
-            "INSERT INTO historico_varreduras (data_hora) VALUES (?)", (agora_local,)
+            "INSERT INTO scan_history (timestamp) VALUES (?)", (local_time,)
         )
-        id_varredura = cursor.lastrowid
+        scan_id = cursor.lastrowid
 
         for dev in devices_list:
-            cursor.execute("SELECT id FROM dispositivos WHERE ip = ?", (dev.get("ip"),))
+            cursor.execute("SELECT id FROM devices WHERE ip = ?", (dev.get("ip"),))
             row = cursor.fetchone()
 
-            nome = dev.get("hostname", "Desconhecido")
-            fabricante = dev.get("vendor", "Desconhecido")
-            so = dev.get("os", "Desconhecido")
+            name = dev.get("hostname", "Unknown")
+            vendor = dev.get("vendor", "Unknown")
+            os_name = dev.get("os", "Unknown")
 
             if row:
-                id_dispositivo = row["id"]
+                device_id = row["id"]
 
                 cursor.execute(
                     """
-                        UPDATE dispositivos
-                        SET nome = ?, fabricante = ?, so = ?
+                        UPDATE devices
+                        SET name = ?, vendor = ?, os = ?
                         WHERE id = ?
                     """,
-                    (nome, fabricante, so, id_dispositivo),
+                    (name, vendor, os_name, device_id),
                 )
             else:
                 cursor.execute(
                     """
-                        INSERT INTO dispositivos(ip, mac, nome, fabricante, so)
+                        INSERT INTO devices(ip, mac, name, vendor, os)
                         VALUES(?,?,?,?,?)
                     """,
-                    (dev.get("ip"), dev.get("mac"), nome, fabricante, so),
+                    (dev.get("ip"), dev.get("mac"), name, vendor, os_name),
                 )
-                id_dispositivo = cursor.lastrowid
+                device_id = cursor.lastrowid
 
             cursor.execute(
                 """
-                INSERT INTO logs_dispositivos (id_varredura, id_dispositivo, status)
+                INSERT INTO device_logs (scan_id, device_id, status)
                 VALUES (?, ?, ?)
                 """,
-                (id_varredura, id_dispositivo, dev.get("status", "Online")),
+                (scan_id, device_id, dev.get("status", "Online")),
             )
         conn.commit()
 
@@ -114,15 +118,15 @@ def load_devices_from_last_scan():
         query = """
             SELECT
                 d.ip,
-                d.nome as hostname,
-                d.fabricante as vendor,
-                d.so as os,
-                datetime(h.data_hora, 'localtime') as data_hora,
+                d.name as hostname,
+                d.vendor,
+                d.os,
+                h.timestamp as data_hora, -- Kept as alias to not break your UI template
                 l.status
-            FROM logs_dispositivos l
-            JOIN dispositivos d ON l.id_dispositivo = d.id
-            JOIN historico_varreduras h ON l.id_varredura = h.id
-            WHERE l.id_varredura = (SELECT MAX(id) FROM historico_varreduras)
+            FROM device_logs l
+            JOIN devices d ON l.device_id = d.id
+            JOIN scan_history h ON l.scan_id = h.id
+            WHERE l.scan_id = (SELECT MAX(id) FROM scan_history)
         """
         cursor.execute(query)
         rows = cursor.fetchall()

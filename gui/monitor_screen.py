@@ -21,13 +21,13 @@ class MonitorScreen(ttk.Frame):
 
         
         self.network = get_network()
-        self.monitorando = False
+        self.monitoring = False
 
         
-        self.status = ttk.Label(self, text="Status: Parado")
+        self.status = ttk.Label(self, text="Status: Stopped")
 
         if not self.network:
-            self.status.config(text="Rede não encontrada")
+            self.status.config(text="Network not found")
             self.status.pack(pady=20)
             return
 
@@ -36,7 +36,7 @@ class MonitorScreen(ttk.Frame):
     def create_widgets(self):
 
         ttk.Label(
-            self, text="MONITORAMENTO DA REDE", font=("Arial", 20, "bold")
+            self, text="NETWORK MONITORING", font=("Arial", 20, "bold")
         ).pack(pady=15)
 
         
@@ -49,95 +49,95 @@ class MonitorScreen(ttk.Frame):
 
         self.tree = ttk.Treeview(
             self,
-            columns=("IP", "HOST", "SO", "FABRICANTE"),
+            columns=("IP", "HOST", "OS", "VENDOR"),
             show="headings",
             height=20,
         )
 
         self.tree.heading("IP", text="IP")
         self.tree.heading("HOST", text="Hostname")
-        self.tree.heading("SO", text="Sistema operacional")
-        self.tree.heading("FABRICANTE", text="Fabricante")
+        self.tree.heading("OS", text="Operation System")
+        self.tree.heading("VENDOR", text="Vendor")
 
         self.tree.column("IP", width=150)
         self.tree.column("HOST", width=220)
-        self.tree.column("SO", width=220)
-        self.tree.column("FABRICANTE", width=220)
+        self.tree.column("OS", width=220)
+        self.tree.column("VENDOR", width=220)
 
         self.tree.pack(fill="both", expand=True, padx=15, pady=20)
 
         botoes = ttk.Frame(self)
         botoes.pack(pady=10)
 
-        ttk.Button(botoes, text="Iniciar", command=self.iniciar).pack(
+        ttk.Button(botoes, text="Start", command=self.start).pack(
             side="left", padx=10
         )
-        ttk.Button(botoes, text="Parar", command=self.parar).pack(
+        ttk.Button(botoes, text="Stop", command=self.stop).pack(
             side="left", padx=10
         )
-        ttk.Button(botoes, text="Voltar", command=self.voltar).pack(
+        ttk.Button(botoes, text="Back", command=self.back).pack(
             side="left", padx=10
         )
         
-        ttk.Button(botoes,text= "Gerar PDF", command=self.salvar_pdf).pack(
+        ttk.Button(botoes,text= "Generate PDF", command=self.save_pdf).pack(
             side="left",padx=10
         )
 
-        ttk.Label(self, text="Eventos").pack()
+        ttk.Label(self, text="Events").pack()
 
         self.log = Text(self, height=8)
         self.log.pack(fill="x", padx=20)
 
-    def iniciar(self):
-        if self.monitorando:
+    def start(self):
+        if self.monitoring:
             return
 
-        self.monitorando = True
+        self.monitoring = True
 
         threading.Thread(target=self.monitor, daemon=True).start()
 
     def monitor(self):
 
-        while self.monitorando:
-            antigos = load_devices_from_last_scan()
+        while self.monitoring:
+            olds = load_devices_from_last_scan()
         
-            if not self.monitorando:
+            if not self.monitoring:
                 break
 
             self.master.after(
-                0, lambda: [self.status.config(text="Escaneando..."),
+                0, lambda: [self.status.config(text="Scanning..."),
                 self.progress.start(10),],
             )
-            dispositivos = scan_network(self.network)
+            devices = scan_network(self.network)
             
-            if not self.monitorando:
+            if not self.monitoring:
                 break
 
-            save_devices(dispositivos)
+            save_devices(devices)
 
-            novos, removidos = compare_devices(antigos, dispositivos)
+            new, removed = compare_devices(olds, devices)
 
             
-            if self.monitorando:
+            if self.monitoring:
                 self.master.after(
                     0,
                     lambda: [
                         self.progress.stop(),
-                        self.atualizar_tabela(dispositivos,novos,removidos)
+                        self.update_table(devices,new,removed)
                     ]
                 )
 
             for _ in range(5):
-                if not self.monitorando:
+                if not self.monitoring:
                     break
                 time.sleep(1)
 
-    def atualizar_tabela(self, dispositivos, novos, removidos):
+    def update_table(self, devices, new, removed):
        
         self.tree.delete(*self.tree.get_children())
 
         
-        for d in dispositivos:
+        for d in devices:
             self.tree.insert(
                 "",
                 "end",
@@ -150,7 +150,7 @@ class MonitorScreen(ttk.Frame):
             )
 
         self.status.config(
-            text=f"Status: Monitorando ({len(dispositivos)} dispositivos)"
+            text=f"Status: Monitoring ({len(devices)} dispositivos)"
         )
 
        
@@ -158,44 +158,44 @@ class MonitorScreen(ttk.Frame):
 
         timestamp = time.strftime("%H:%M:%S")
 
-        for ip in novos:
-            self.log.insert(END, f"[{timestamp}] [NOVO] {ip}\n")
-        for ip in removidos:
+        for ip in new:
+            self.log.insert(END, f"[{timestamp}] [NEW] {ip}\n")
+        for ip in removed:
             self.log.insert(END, f"[{timestamp}] [OFFLINE] {ip}\n")
 
-        if not novos and not removidos:
-            self.log.insert(END, f"[{timestamp}] Nenhuma mudança.\n")
+        if not new and not removed:
+            self.log.insert(END, f"[{timestamp}] Nothing changes.\n")
 
         
         self.log.see(END)
     
-    def salvar_pdf(self,*args):
+    def save_pdf(self,*args):
         try:
             generate_pdf()  
 
             messagebox.showinfo(
-                "Sucesso",
-                "Relatório PDF gerado com sucesso!"
+                "Success",
+                "Report PDF generated!"
             )
         except Exception as e:
-            messagebox.showerror("ERRO",f"Não foi possível salvar em PDF.\n{e}\n")
+            messagebox.showerror("ERROR",f"Unable to save as PDF.\n{e}\n")
 
-    def parar(self):
+    def stop(self):
         self.monitorando = False
         cancel_event.set()
         self.progress.stop()
-        self.status.config(text="Status: Parado")
+        self.status.config(text="Status: Stopped")
 
-    def voltar(self):
+    def back(self):
         from .control_panel import Control_panel
 
-        self.monitorando = False
+        self.monitoring = False
         cancel_event.set()
         self.progress.stop()
         self.destroy()
         Control_panel(self.master)
     
-    def _finalizar_voltar(self):
+    def _finish_back(self):
         from .control_panel import Control_panel
         self.destroy()
         Control_panel(self.master)

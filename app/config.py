@@ -34,11 +34,11 @@ def get_network():
                         strict=False
                     )
                     print(f"IP: {addr.address}")
-                    print(f"Máscara: {addr.netmask}")
-                    print(f"Rede: {network}")
+                    print(f"Subnet mask: {addr.netmask}")
+                    print(f"Network: {network}")
                     
                     return str(network)
         
     except Exception as e:
-        print(f"ERRO, ao detectar rede {e}")
+        print(f"ERROR, detection failed {e}")
         return None

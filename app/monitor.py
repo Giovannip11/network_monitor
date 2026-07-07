@@ -7,8 +7,8 @@ def compare_devices(old,new):
     removidos = old_ips - new_ips
     
     for ip in novos:
-        log_event(f"NOVOS DISPOSITIVOS {ip}")
+        log_event(f"NEW DEVICES{ip}")
     for ip in removidos:
-        log_event(f"DISPOSITIVO DESCONECTADO: {ip}")
+        log_event(f"DEVICE DISCONNECTED: {ip}")
     
     return novos, removidos
