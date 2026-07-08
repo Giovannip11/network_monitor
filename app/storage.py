@@ -132,3 +132,36 @@ def load_devices_from_last_scan():
         rows = cursor.fetchall()
 
         return [dict(row) for row in rows]
+    
+
+def get_report_stats():
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT COUNT(*) FROM scan_history")
+        total_scans = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM devices")
+        total_devices = cursor.fetchone()[0]
+        
+        return total_scans, total_devices
+    
+def get_scan_history_report():
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT
+                h.id AS scan_id,
+                h.timestamp,
+                COUNT(l.id) AS devices_online
+            FROM scan_history h
+            LEFT JOIN device_logs l ON h.id = l.scan_id AND l.status = 'Online'
+            GROUP BY h.id
+            ORDER BY h.timestamp DESC
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
+    
+        

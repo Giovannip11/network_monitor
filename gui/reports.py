@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+from app.storage import get_report_stats, get_scan_history_report
 class ReportScreen(ttk.Frame):
     def __init__(self,master):
         
@@ -22,7 +23,7 @@ class ReportScreen(ttk.Frame):
         
         ttk.Label(filter_frame,text="Period:").pack(side="left",padx=5,pady=5)
         self.period_combo = ttk.Combobox(
-            filter_frame, values = ["All history", "Lasts 24 Hours", "Last 7 Days"], state = "reandoly"
+            filter_frame, values = ["All history", "Lasts 24 Hours", "Last 7 Days"], state = "reandonly"
         )
         self.period_combo.current(0)
         self.period_combo.pack(side="left",padx=5,pady=5)
@@ -36,7 +37,7 @@ class ReportScreen(ttk.Frame):
         self.lbl_total_scans.pack(side="left",padx=20)
         
         self.lbl_total_devices = ttk.Label(stats_frame,text = "Devices Tracked: --", font=("Arial", 11, "bold"))
-        self.lbl_total_scans.pack(side="left",padx=20)
+        self.lbl_total_devices.pack(side="left",padx=20)
         
         self.report_tree = ttk.Treeview(
             self,
@@ -54,21 +55,36 @@ class ReportScreen(ttk.Frame):
         
         self.report_tree.pack(fill="both",expand=True,padx=20,pady=10)
         
-        self.report_tree.bind("<<TreeViewSelect>>",self.on_scan_selected)
+        self.report_tree.bind("<<TreeviewSelect>>",self.on_scan_selected)
         
         actions_frame=ttk.Frame(self)
         actions_frame.pack(pady=15)
         
-        ttk.Button(actions_frame,text="Export PDF Report", command=self.export_pdf)
+        ttk.Button(actions_frame,text="Export PDF Report", command=self.export_pdf).pack(side="left",padx=10)
         ttk.Button(actions_frame,text="Back",command=self.voltar).pack(side="left",padx=10)
         
     
     def load_report_data(self):
-        self.lbl_total_scans.config(text="Total scans: 14")
-        self.lbl_total_devices.config(text="Devices Tracked: 8")
-        
-        self.report_tree.delete(*self.report_tree.get_children())
-        
+        try:
+            total_scans, total_devices = get_report_stats()
+            self.lbl_total_scans.config(text=f"Total scans: {total_scans}")
+            self.lbl_total_devices.config(text=f"Devices tracked: {total_devices}")
+            
+            self.report_tree.delete(*self.report_tree.get_children())
+            
+            history = get_scan_history_report()
+            for row in history:
+                self.report_tree.insert(
+                    "",
+                    "end",
+                    values=(
+                        row["scan_id"],
+                        row["timestamp"],
+                        row["devices_online"]
+                    )
+                )        
+        except Exception as e:
+            messagebox.showerror("Database Error", f"Could not load reports:\n{e}")
     def apply_filter(self):
         selected = self.period_combo.get()
         print(f"Filtering by: {selected}")
