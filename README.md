@@ -1,69 +1,206 @@
-# Network Monitor 
+# 🌐 Network Monitor
 
-Um monitor de rede automatizado desenvolvido em Python para ambientes locais. O sistema realiza varreduras periódicas em uma sub-rede configurada, detecta dispositivos conectados, identifica seus respectivos Sistemas Operacionais, fabricantes (através do endereço MAC) e portas ativas. 
+A cross-platform network monitoring application developed in Python for local area networks (LANs). The system periodically scans a configurable subnet, detects connected devices, identifies their operating systems, hardware vendors (through MAC addresses), and collects information about network services.
 
-Os dados coletados são estruturados de forma relacional e armazenados localmente em um banco de dados SQLite, permitindo rastrear o histórico de conexões e gerando automaticamente relatórios consolidados em formato PDF a cada ciclo.
-
----
-
-##  Funcionalidades
-
-- **Varredura Paralelizada:** Utiliza `ThreadPoolExecutor` para acelerar o escaneamento de múltiplos hosts simultaneamente através do Nmap.
-- **Identificação de Ativos:** Detecta IP, MAC Address, Fabricante (Vendor) e Sistema Operacional (OS).
-- **Persistência em SQLite:** Armazenamento relacional e histórico completo de varreduras para auditoria de segurança ou inventário de TI.
-- **Detecção de Mudanças em Tempo Real:** Identifica e loga novos dispositivos que entraram na rede ou dispositivos que ficaram offline.
-- **Relatórios Automatizados:** Geração contínua de relatórios em PDF detalhados com os dados coletados na última varredura.
+All collected data is stored in a local SQLite relational database, allowing historical tracking of network devices, event logging, and automated PDF report generation.
 
 ---
 
-##  Estrutura do Projeto
+## ✨ Features
+
+- ⚡ **Parallel Network Scanning**
+  - Uses `ThreadPoolExecutor` with **Nmap** to efficiently scan multiple hosts simultaneously.
+
+- 🖥️ **Device Discovery**
+  - Detects:
+    - IP Address
+    - MAC Address
+    - Hostname
+    - Vendor
+    - Operating System
+    - Device Status
+
+- 🗄️ **SQLite Database**
+  - Stores every scan in a relational database.
+  - Maintains historical records of devices and scans.
+
+- 🔄 **Real-Time Monitoring**
+  - Detects:
+    - New devices joining the network.
+    - Devices that become unavailable.
+
+- 📄 **PDF Report Generation**
+  - Generates detailed PDF reports containing information about the latest scan.
+
+- 📝 **Event Logging**
+  - Stores monitoring events in log files for auditing and troubleshooting.
+
+- 🖥️ **Desktop Interface**
+  - Simple graphical interface built with **Tkinter** for starting scans, monitoring devices, and generating reports.
+
+- 🌍 **Cross-Platform**
+  - Compatible with:
+    - Windows
+    - Linux
+    - macOS
+
+---
+
+# 📂 Project Structure
 
 ```text
 network_monitor/
+│
 ├── app/
-│   ├── config.py          # Centralização de caminhos e diretórios
-│   ├── logger.py          # Gerenciamento de logs do sistema (.log)
-│   ├── main.py            # Orquestrador do loop principal do monitor
-│   ├── monitor.py         # Lógica de comparação entre varreduras (Novos/Offline)
-│   ├── pdf_report.py      # Geração de relatórios com ReportLab
-│   ├── scanner.py         # Mecanismo de varredura utilizando python-nmap e socket
-│   ├── storage.py         # Conexão, inicialização e queries do banco SQLite
-│   └── utils.py           # Regras de detecção de tipo de dispositivo e portas
+│   ├── config.py          # Application configuration
+│   ├── logger.py          # Event logging
+│   ├── main.py            # Application entry point
+│   ├── monitor.py         # Device comparison logic
+│   ├── pdf_report.py      # PDF report generator
+│   ├── scanner.py         # Nmap network scanner
+│   ├── storage.py         # SQLite database operations
+│   └── utils.py           # Utility functions
+│
+├── gui/
+│   ├── control_panel.py
+│   ├── dashboard.py
+│   ├── history_screen.py
+│   ├── monitor_screen.py
+│   ├── reports_screen.py
+│   └── settings_screen.py
+│
 ├── data/
-│   └── network_monitor.db # Banco de dados SQLite (Gerado automaticamente)
+│   └── network_monitor.db     # SQLite database (auto-generated)
+│
 ├── history/
-│   └── relatorio_*.pdf    # Histórico de PDFs gerados (Gerado automaticamente)
+│   └── report_*.pdf           # Generated reports
+│
 ├── logs/
-│   └── monitor.log        # Registro de eventos textuais (Gerado automaticamente)
-├── .env                   # Variáveis de ambiente (Configuração da rede)
-└── requirements.txt       # Dependências do projeto
+│   └── monitor.log            # Application logs
+│
+├── requirements.txt
+├── .env
+└── README.md
 ```
-## Pré-requisitos
--  Python 3.10 ou superior
--  NMAP, o core do scanner depende do binário do NMAP instalado no sistema operacional
-## Instalação
-Clone ou mova o projeto para o diretório de sua preferência 
-``` text
-cd C:/projetos/network_monitor
+
+---
+
+# 📋 Requirements
+
+- Python **3.10+**
+- Nmap installed on your operating system
+- Git (optional)
+
+---
+
+# 🚀 Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/your-user/network_monitor.git
 ```
-Crie um ambiente virtual
-``` text
+
+Go to the project folder:
+
+```bash
+cd network_monitor
+```
+
+Create a virtual environment:
+
+### Windows
+
+```bash
 py -m venv .venv
 ```
-Ative o ambiente virtual
--Windows
-```text
-.venv/Scripts/activate
+
+### Linux / macOS
+
+```bash
+python3 -m venv .venv
 ```
--Linux/MacOS 
-```text
+
+Activate the virtual environment.
+
+**Windows**
+
+```bash
+.venv\Scripts\activate
+```
+
+**Linux / macOS**
+
+```bash
 source .venv/bin/activate
 ```
-Instale as dependências do projeto
-```text
+
+Install the dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
- Executar a main.py dentro do app do projeto
-```text
+
+---
+
+# ⚙️ Configuration
+
+Create a `.env` file in the project root.
+
+Example:
+
+```env
+NETWORK=192.168.1.0/24
+```
+
+If supported by your operating system, the application can also automatically detect the local network.
+
+---
+
+# ▶️ Running
+
+```bash
 python app/main.py
 ```
+
+---
+
+# 📄 Generated Files
+
+During execution, the application automatically creates:
+
+- `data/network_monitor.db`
+- `logs/monitor.log`
+- `history/report_<timestamp>.pdf`
+
+---
+
+# 🛠️ Technologies
+
+- Python
+- Tkinter
+- SQLite
+- python-nmap
+- ReportLab
+- python-dotenv
+- ThreadPoolExecutor
+
+---
+
+# 📈 Future Improvements
+
+- Network topology visualization
+- Interactive dashboard with charts
+- Email notifications
+- SNMP monitoring
+- REST API
+- Multi-user authentication
+- Device inventory management
+- Export reports to Excel
+- Dark mode interface
+
+---
+
+# 📜 License
+
+This project is licensed under the MIT License.
